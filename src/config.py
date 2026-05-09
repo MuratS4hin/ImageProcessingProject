@@ -25,6 +25,8 @@ class ExperimentConfig:
     seed: int = 42
 
     save_best_only: bool = True
+    early_stopping_patience: int = 0
+    early_stopping_min_delta: float = 0.0
 
     @staticmethod
     def from_namespace(ns: argparse.Namespace) -> "ExperimentConfig":
@@ -43,6 +45,8 @@ class ExperimentConfig:
             num_workers=ns.num_workers,
             seed=ns.seed,
             save_best_only=not ns.save_all,
+            early_stopping_patience=ns.early_stopping_patience,
+            early_stopping_min_delta=ns.early_stopping_min_delta,
         )
 
     def to_dict(self) -> dict:
@@ -74,6 +78,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--num-workers", type=int, default=2)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--save-all", action="store_true")
+    parser.add_argument(
+        "--early-stopping-patience",
+        type=int,
+        default=0,
+        help="Stop early if validation accuracy does not improve for this many epochs (0 disables).",
+    )
+    parser.add_argument(
+        "--early-stopping-min-delta",
+        type=float,
+        default=0.0,
+        help="Minimum validation accuracy improvement to reset early-stopping counter.",
+    )
 
     parser.add_argument(
         "--models",

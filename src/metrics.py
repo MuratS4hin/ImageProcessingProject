@@ -42,3 +42,24 @@ def compute_classification_metrics(
 
 def compute_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
     return confusion_matrix(y_true, y_pred)
+
+
+def compute_per_class_metrics(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    num_classes: int,
+) -> Dict[str, Dict[str, float]]:
+    labels = np.arange(num_classes)
+    precision = precision_score(y_true, y_pred, labels=labels, average=None, zero_division=0)
+    recall = recall_score(y_true, y_pred, labels=labels, average=None, zero_division=0)
+    f1 = f1_score(y_true, y_pred, labels=labels, average=None, zero_division=0)
+
+    class_metrics: Dict[str, Dict[str, float]] = {}
+    for idx in range(num_classes):
+        class_metrics[f"class_{idx}"] = {
+            "precision": float(precision[idx]),
+            "recall": float(recall[idx]),
+            "f1": float(f1[idx]),
+        }
+
+    return class_metrics
