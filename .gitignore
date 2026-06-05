@@ -1,0 +1,8 @@
+.venv/
+.qodo/
+outputs/
+data/
+src/__pycache__/
+presentation_outputs/
+docs
+__pycache__

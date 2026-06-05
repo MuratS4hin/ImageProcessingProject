@@ -4,6 +4,8 @@ from pathlib import Path
 import time
 from typing import Any, Dict, Tuple
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -82,9 +84,13 @@ def run_training(
     save_best_only: bool = True,
     early_stopping_patience: int = 0,
     early_stopping_min_delta: float = 0.0,
+    label_smoothing: float = 0.1,
 ) -> Dict[str, Any]:
-    criterion = nn.CrossEntropyLoss()
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
     best_val_acc = -1.0
     epochs_without_improvement = 0
@@ -111,7 +117,8 @@ def run_training(
         print(
             f"Epoch {epoch:03d}/{epochs} | "
             f"train_loss={train_loss:.4f}, val_loss={val_loss:.4f}, "
-            f"train_acc={train_metrics['accuracy']:.4f}, val_acc={val_metrics['accuracy']:.4f}"
+            f"train_acc={train_metrics['accuracy']:.4f}, val_acc={val_metrics['accuracy']:.4f} | "
+            f"lr={optimizer.param_groups[0]['lr']:.6f}"
         )
 
         epoch_history["train_loss"].append(float(train_loss))
@@ -130,6 +137,8 @@ def run_training(
             epochs_without_improvement += 1
         else:
             epochs_without_improvement += 1
+
+        scheduler.step()
 
         if early_stopping_patience > 0 and epochs_without_improvement >= early_stopping_patience:
             print(

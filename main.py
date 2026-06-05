@@ -56,6 +56,7 @@ def main() -> None:
             save_best_only=cfg.save_best_only,
             early_stopping_patience=cfg.early_stopping_patience,
             early_stopping_min_delta=cfg.early_stopping_min_delta,
+            label_smoothing=cfg.label_smoothing,
         )
 
         report = {

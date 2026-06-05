@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 import torch
+import torchvision.transforms as transforms
 from PIL import Image
 
 from .filters import gabor_edge_map, sobel_edge_map
@@ -15,6 +16,7 @@ class TransformConfig:
     color_space: str = "rgb"
     texture_filter: str = "none"
     texture_strength: float = 0.35
+    augment: bool = False
 
 
 def _convert_color(rgb_uint8: np.ndarray, color_space: str) -> np.ndarray:
@@ -48,8 +50,24 @@ def _texture_map(rgb_uint8: np.ndarray, texture_filter: str) -> np.ndarray:
 class ColorTextureTransform:
     def __init__(self, cfg: TransformConfig):
         self.cfg = cfg
+        
+        # Augmentation pipeline for training
+        if cfg.augment:
+            self.augment_transform = transforms.Compose([
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomVerticalFlip(p=0.1),
+                transforms.RandomRotation(degrees=15),
+                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+            ])
+        else:
+            self.augment_transform = None
 
     def __call__(self, image: Image.Image) -> torch.Tensor:
+        # Apply augmentations if enabled
+        if self.augment_transform is not None:
+            image = self.augment_transform(image)
+        
         rgb_uint8 = np.asarray(image.convert("RGB"), dtype=np.uint8)
         converted = _convert_color(rgb_uint8, self.cfg.color_space).astype(np.float32) / 255.0
 

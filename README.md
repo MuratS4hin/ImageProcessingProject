@@ -55,11 +55,19 @@ Grid experiment (all combinations):
 
 ```bash
 python main.py \
-  --dataset cifar100 \
+  --dataset cifar10 \
   --models alexnet resnet18 densenet121 \
   --color-spaces rgb hsv lab xyz ycrcb gray \
   --texture-filters none sobel gabor \
-  --epochs 30
+  --epochs 30 \
+  --batch-size 128
+```
+``` For Windows
+python main.py --dataset cifar10 --models resnet18 densenet121 --color-spaces rgb hsv lab gray --texture-filters none sobel gabor --epochs 30 --batch-size 128 --early-stopping-patience 3 --early-stopping-min-delta 0.001
+
+python main.py --dataset cifar10 --models alexnet resnet18 --color-spaces rgb hsv lab --texture-filters none sobel gabor --epoch 50 --early-stopping-patience 3 --early-stopping-min-delta 0.001
+
+python main.py --model simplecnn --color-spaces rgb hsv lab --texture-filters none sobel gabor --epochs 30 --batch-size 128 --lr 0.001 --early-stopping-patience 3 --early-stopping-min-delta 0.001
 ```
 
 ## Output

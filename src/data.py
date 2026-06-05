@@ -21,16 +21,28 @@ def _get_dataset_class(name: str):
 def build_dataloaders(cfg: ExperimentConfig) -> Tuple[DataLoader, DataLoader, DataLoader, int]:
     dataset_cls, num_classes = _get_dataset_class(cfg.dataset)
 
-    transform = ColorTextureTransform(
+    # Training transform with augmentation
+    train_transform = ColorTextureTransform(
         TransformConfig(
             color_space=cfg.color_space,
             texture_filter=cfg.texture_filter,
             texture_strength=0.35,
+            augment=True,
+        )
+    )
+    
+    # Validation/test transform without augmentation
+    val_transform = ColorTextureTransform(
+        TransformConfig(
+            color_space=cfg.color_space,
+            texture_filter=cfg.texture_filter,
+            texture_strength=0.35,
+            augment=False,
         )
     )
 
-    full_train = dataset_cls(root=cfg.data_root, train=True, download=True, transform=transform)
-    test_set = dataset_cls(root=cfg.data_root, train=False, download=True, transform=transform)
+    full_train = dataset_cls(root=cfg.data_root, train=True, download=True, transform=train_transform)
+    test_set = dataset_cls(root=cfg.data_root, train=False, download=True, transform=val_transform)
 
     val_size = int(len(full_train) * cfg.val_split)
     train_size = len(full_train) - val_size

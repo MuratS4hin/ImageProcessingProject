@@ -16,17 +16,18 @@ class ExperimentConfig:
     color_space: str = "rgb"
     texture_filter: str = "none"
 
-    epochs: int = 10
+    epochs: int = 50
     batch_size: int = 128
-    lr: float = 1e-3
-    weight_decay: float = 1e-4
+    lr: float = 1e-2
+    weight_decay: float = 5e-4
     val_split: float = 0.1
     num_workers: int = 2
     seed: int = 42
 
     save_best_only: bool = True
-    early_stopping_patience: int = 0
-    early_stopping_min_delta: float = 0.0
+    early_stopping_patience: int = 15
+    early_stopping_min_delta: float = 0.001
+    label_smoothing: float = 0.1
 
     @staticmethod
     def from_namespace(ns: argparse.Namespace) -> "ExperimentConfig":
@@ -47,6 +48,7 @@ class ExperimentConfig:
             save_best_only=not ns.save_all,
             early_stopping_patience=ns.early_stopping_patience,
             early_stopping_min_delta=ns.early_stopping_min_delta,
+            label_smoothing=ns.label_smoothing,
         )
 
     def to_dict(self) -> dict:
@@ -62,7 +64,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--data-root", default="./data")
     parser.add_argument("--output-root", default="./outputs")
 
-    parser.add_argument("--model", choices=["alexnet", "resnet18", "densenet121"], default="resnet18")
+    parser.add_argument("--model", choices=["simplecnn", "alexnet", "resnet18", "densenet121"], default="resnet18")
     parser.add_argument(
         "--color-space",
         choices=["rgb", "hsv", "lab", "xyz", "ycrcb", "gray"],
@@ -90,11 +92,17 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=0.0,
         help="Minimum validation accuracy improvement to reset early-stopping counter.",
     )
+    parser.add_argument(
+        "--label-smoothing",
+        type=float,
+        default=0.1,
+        help="Label smoothing factor for cross entropy loss (0 = no smoothing).",
+    )
 
     parser.add_argument(
         "--models",
         nargs="+",
-        choices=["alexnet", "resnet18", "densenet121"],
+        choices=["simplecnn", "alexnet", "resnet18", "densenet121"],
         help="Optional multi-run override for model list",
     )
     parser.add_argument(
